@@ -1,6 +1,10 @@
-# **Security Assessment Script**
-
----
+----
+|   |
+|:--|
+| We do not consent to GitHub's use of this project's code in Copilot. 
+Any use of this project's code by GitHub Copilot,  past or present, is done without our permission. |
+|   |
+----
 
 ## 🛡️ Security Assessment Script  
 *Delivered with ❤️ by SecureLayer © 2024*
