@@ -69,7 +69,7 @@ Designed specifically for **macOS users**, this script works seamlessly with you
 ✅ All NPM packages are up-to-date.
 
 🔍 Checking SSH keys...
-✅ Secure SSH key found: ~/.ssh/id_rsa.pub
+✅ Secure SSH key found: ~/.ssh/id_ed25519.pub
 
 🔍 Checking Homebrew packages...
 ✅ All brew packages are up-to-date.
