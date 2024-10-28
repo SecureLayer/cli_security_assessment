@@ -1,4 +1,4 @@
-# **README.md: Security Assessment Script**
+# **Security Assessment Script**
 
 ---
 
