@@ -101,7 +101,7 @@ def check_npm_libraries(max_retries=3):
             print(Fore.YELLOW + f"⚠️ NPM audit failed (Attempt {attempt + 1}/{max_retries}). Trying to clean cache.")
             run_command(["npm", "cache", "clean", "--force"])
 
-    print(Fore.RED + "⚠️ NPM audit failed after maximum retries.")
+    print(Fore.RED + "⚠️ NPM audit failed after maximum retries. Type and try again: npm i --package-lock-only")
     return None
 
 def check_ssh_keys():
