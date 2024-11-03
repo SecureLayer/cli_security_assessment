@@ -1,28 +1,33 @@
 # Security assessment script by SecureLayer © 2024. All rights reserved.
 
+# add python verification 
+
 import os
 import re
 import subprocess
 import json
 import requests
-from colorama import Fore, Style, init 
-import time 
+from colorama import Fore, init 
 
 init(autoreset=True)
 
 __security_firm_watermark__ = "This script is owned by SecureLayer © 2024."
 
 def watermark_log():
-    log_message = "Security assessment script © 2024 by SLayer"
-    run_command(f"echo '{log_message}' | logger") 
+    log_message = "Security assessment script © 2024 by XXXX"
+    subprocess.run(["logger", log_message], check=True)
 
 print(Fore.CYAN + "This script is designed for macOS hosts only\n")
 
 def get_history_file():
-    if os.path.exists(os.path.expanduser("~/.zsh_history")):
-        return "~/.zsh_history"
-    elif os.path.exists(os.path.expanduser("~/.bash_history")):
-        return "~/.bash_history"
+    home_dir = os.path.expanduser("~")
+    zsh_history = os.path.join(home_dir, ".zsh_history")
+    bash_history = os.path.join(home_dir, ".bash_history")
+
+    if os.path.exists(zsh_history):
+        return zsh_history
+    elif os.path.exists(bash_history):
+        return bash_history
     else:
         print(Fore.RED + "⚠️ No shell history file found.")
         return None
@@ -33,18 +38,16 @@ if history_file:
 else:
     exit()
 
-print(Fore.CYAN + "Supported package manager : Homebrew\n")
+print(Fore.CYAN + "Supported package manager: Homebrew\n")
 
-def run_command(command):
+def run_command(command_list):
     try:
-        result = subprocess.check_output(
-            command, 
-            shell=True, 
-            text=True, 
-            stderr=subprocess.DEVNULL  # Suppress warnings
-        ).strip()
+        result = subprocess.check_output(command_list, text=True, stderr=subprocess.DEVNULL, timeout=10).strip()
         return result if result else None
     except subprocess.CalledProcessError:
+        return None
+    except subprocess.TimeoutExpired:
+        print(Fore.RED + "⚠️ Command timed out.")
         return None
 
 def pii_patterns():
@@ -58,9 +61,9 @@ def pii_patterns():
 
 def check_pii_in_history():
     print(Fore.YELLOW + "🔍 Checking for PII in history file...")
-    path = os.path.expanduser(history_file)
     try:
-        content = open(path, 'r', errors='replace').read()
+        with open(history_file, 'r', errors='replace') as file:
+            content = file.read(50000)  # Limit reading to avoid memory overuse.
     except FileNotFoundError:
         print(Fore.RED + "⚠️ History file not found.")
         return None
@@ -79,11 +82,12 @@ def check_pii_in_history():
 
 def check_npm_libraries():
     print(Fore.YELLOW + "🔍 Checking NPM libraries...")
-    output = run_command("npm audit --json")
+    output = run_command(["npm", "audit", "--json"])
     if output:
         try:
             audit_data = json.loads(output)
-            if audit_data.get("metadata", {}).get("vulnerabilities", {}).get("total", 0) > 0:
+            total_vulnerabilities = audit_data.get("metadata", {}).get("vulnerabilities", {}).get("total", 0)
+            if total_vulnerabilities > 0:
                 print(Fore.RED + "⚠️ Vulnerabilities found in NPM packages.")
                 return False
             print(Fore.GREEN + "✅ All NPM packages are up-to-date.")
@@ -92,13 +96,13 @@ def check_npm_libraries():
             print(Fore.YELLOW + "⚠️ Could not decode NPM audit output.")
             return None
     print(Fore.YELLOW + "⚠️ NPM audit failed. Attempting to clean cache.")
-    run_command("npm cache clean --force")
+    run_command(["npm", "cache", "clean", "--force"])
     return check_npm_libraries()
 
 def check_ssh_keys():
     print(Fore.YELLOW + "🔍 Checking SSH keys...")
-    home_keys = run_command("find $HOME \\( -path \"$HOME/.ssh\" -prune \\) -o -name '*.pub' -print") 
-    ssh_keys = run_command("find ~/.ssh -name '*.pub'")
+    home_keys = run_command(["find", os.path.expanduser("~"), "-path", "$HOME/.ssh", "-prune", "-o", "-name", "*.pub", "-print"]) 
+    ssh_keys = run_command(["find", os.path.expanduser("~/.ssh"), "-name", "*.pub"])
 
     weak_algo = {"ssh-rsa", "ssh-dss"}
     is_secure = True
@@ -121,7 +125,7 @@ def check_ssh_keys():
 
 def check_homebrew_updates():
     print(Fore.YELLOW + "🔍 Checking Homebrew packages...")
-    output = run_command("brew outdated")
+    output = run_command(["brew", "outdated"])
     if output:
         print(Fore.RED + "⚠️ Outdated brew packages found.")
         return False
@@ -130,22 +134,34 @@ def check_homebrew_updates():
 
 def check_vscode_updates():
     print(Fore.YELLOW + "🔍 Checking VSCode and extensions...")
-    vscode_version = run_command("code -v")
+    vscode_version = run_command(["code", "-v"])
     if vscode_version:
-        latest_version = requests.get(
-            "https://api.github.com/repos/microsoft/vscode/releases/latest"
-        ).json()["tag_name"]
-        if vscode_version.split()[0] != latest_version:
-            print(Fore.RED + f"⚠️ Outdated VSCode version found: {vscode_version}")
-            return False
+        try:
+            latest_version = requests.get("https://api.github.com/repos/microsoft/vscode/releases/latest", timeout=5).json()["tag_name"]
+            if vscode_version.split()[0] != latest_version:
+                print(Fore.RED + f"⚠️ Outdated VSCode version found: {vscode_version}")
+                return False
+        except requests.RequestException:
+            print(Fore.YELLOW + "⚠️ Could not fetch latest VSCode version.")
 
-    extension_updates = run_command(
-        "grep '\"updated\":false' ~/.vscode/extensions/extensions.json"
-    )
+    extension_updates = run_command(["grep", '"updated":false', os.path.expanduser("~/.vscode/extensions/extensions.json")])
     if extension_updates:
         print(Fore.GREEN + "✅ VSCode and extensions are up-to-date.")
         return True
     return False
+
+def check_python_versions():
+    print(Fore.YELLOW + "🔍 Checking Python and pip versions...")
+    python_version = run_command(["python3", "--version"])
+    pip_version = run_command(["pip3", "--version"])
+
+    if python_version and pip_version:
+        print(Fore.GREEN + f"✅ Python version: {python_version}")
+        print(Fore.GREEN + f"✅ Pip version: {pip_version}")
+        return True
+    else:
+        print(Fore.RED + "⚠️ Python or Pip not found.")
+        return False
 
 def evaluate_security():
     results = {
@@ -153,7 +169,8 @@ def evaluate_security():
         "NPM Libraries": check_npm_libraries(),
         "SSH Keys": check_ssh_keys(),
         "Homebrew Packages": check_homebrew_updates(),
-        "VSCode": check_vscode_updates()
+        "VSCode": check_vscode_updates(),
+        "Python and pip versions": check_python_versions(),
     }
 
     score = sum(1 for result in results.values() if result is True)
