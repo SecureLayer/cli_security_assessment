@@ -1,6 +1,7 @@
 # Security assessment script by SecureLayer © 2024. All rights reserved.
 
 # add python verification 
+# correct npm loop
 
 import os
 import re
@@ -80,24 +81,28 @@ def check_pii_in_history():
     print(Fore.GREEN + f"✅ No PII found in {history_file}.")
     return True
 
-def check_npm_libraries():
+def check_npm_libraries(max_retries=3):
     print(Fore.YELLOW + "🔍 Checking NPM libraries...")
-    output = run_command(["npm", "audit", "--json"])
-    if output:
-        try:
-            audit_data = json.loads(output)
-            total_vulnerabilities = audit_data.get("metadata", {}).get("vulnerabilities", {}).get("total", 0)
-            if total_vulnerabilities > 0:
-                print(Fore.RED + "⚠️ Vulnerabilities found in NPM packages.")
-                return False
-            print(Fore.GREEN + "✅ All NPM packages are up-to-date.")
-            return True
-        except json.JSONDecodeError:
-            print(Fore.YELLOW + "⚠️ Could not decode NPM audit output.")
-            return None
-    print(Fore.YELLOW + "⚠️ NPM audit failed. Attempting to clean cache.")
-    run_command(["npm", "cache", "clean", "--force"])
-    return check_npm_libraries()
+    for attempt in range(max_retries):
+        output = run_command(["npm", "audit", "--json"])
+        if output:
+            try:
+                audit_data = json.loads(output)
+                total_vulnerabilities = audit_data.get("metadata", {}).get("vulnerabilities", {}).get("total", 0)
+                if total_vulnerabilities > 0:
+                    print(Fore.RED + "⚠️ Vulnerabilities found in NPM packages.")
+                    return False
+                print(Fore.GREEN + "✅ All NPM packages are up-to-date.")
+                return True
+            except json.JSONDecodeError:
+                print(Fore.YELLOW + "⚠️ Could not decode NPM audit output.")
+                return None
+        else:
+            print(Fore.YELLOW + f"⚠️ NPM audit failed (Attempt {attempt + 1}/{max_retries}). Trying to clean cache.")
+            run_command(["npm", "cache", "clean", "--force"])
+
+    print(Fore.RED + "⚠️ NPM audit failed after maximum retries.")
+    return None
 
 def check_ssh_keys():
     print(Fore.YELLOW + "🔍 Checking SSH keys...")
