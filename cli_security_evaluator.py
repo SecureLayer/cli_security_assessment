@@ -15,7 +15,7 @@ init(autoreset=True)
 __security_firm_watermark__ = "This script is owned by SecureLayer © 2024."
 
 def watermark_log():
-    log_message = "Security assessment script © 2024 by XXXX"
+    log_message = "Security assessment script © 2024 by SLayer"
     subprocess.run(["logger", log_message], check=True)
 
 print(Fore.CYAN + "This script is designed for macOS hosts only\n")
