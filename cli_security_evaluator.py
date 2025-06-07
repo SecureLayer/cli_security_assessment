@@ -2,6 +2,8 @@
 
 # add python verification 
 # correct npm loop
+# correct VSCode errors 
+
 
 import os
 import re
@@ -15,7 +17,7 @@ init(autoreset=True)
 __security_firm_watermark__ = "This script is owned by SecureLayer © 2024."
 
 def watermark_log():
-    log_message = "Security assessment script © 2024 by SLayer"
+    log_message = "Security assessment script © 2024 by SecureLayer"
     subprocess.run(["logger", log_message], check=True)
 
 print(Fore.CYAN + "This script is designed for macOS hosts only\n")
@@ -101,7 +103,7 @@ def check_npm_libraries(max_retries=3):
             print(Fore.YELLOW + f"⚠️ NPM audit failed (Attempt {attempt + 1}/{max_retries}). Trying to clean cache.")
             run_command(["npm", "cache", "clean", "--force"])
 
-    print(Fore.RED + "⚠️ NPM audit failed after maximum retries. Type and try again: npm i --package-lock-only")
+    print(Fore.RED + "⚠️ NPM audit failed after maximum retries.")
     return None
 
 def check_ssh_keys():
@@ -139,21 +141,34 @@ def check_homebrew_updates():
 
 def check_vscode_updates():
     print(Fore.YELLOW + "🔍 Checking VSCode and extensions...")
-    vscode_version = run_command(["code", "-v"])
-    if vscode_version:
+    vscode_version_output = run_command(["code", "-v"])
+    if vscode_version_output:
+        local_version = vscode_version_output.splitlines()[0].strip().lstrip('v')
         try:
-            latest_version = requests.get("https://api.github.com/repos/microsoft/vscode/releases/latest", timeout=5).json()["tag_name"]
-            if vscode_version.split()[0] != latest_version:
-                print(Fore.RED + f"⚠️ Outdated VSCode version found: {vscode_version}")
+            latest_version = requests.get("https://api.github.com/repos/microsoft/vscode/releases/latest", timeout=5).json()["tag_name"].lstrip('v')
+            if local_version != latest_version:
+                print(Fore.RED + f"⚠️ Outdated VSCode version. Local: {local_version}, Latest: {latest_version}")
                 return False
+            else:
+                print(Fore.GREEN + f"✅ VSCode is up-to-date. Version: {local_version}")
         except requests.RequestException:
             print(Fore.YELLOW + "⚠️ Could not fetch latest VSCode version.")
+            return None
+    else:
+        print(Fore.RED + "⚠️ VSCode not found or failed to execute.")
+        return None
 
-    extension_updates = run_command(["grep", '"updated":false', os.path.expanduser("~/.vscode/extensions/extensions.json")])
-    if extension_updates:
-        print(Fore.GREEN + "✅ VSCode and extensions are up-to-date.")
-        return True
-    return False
+    # Extension update check
+    extensions = run_command(["code", "--list-extensions", "--show-versions"])
+    if extensions:
+        outdated_extensions = run_command(["code", "--list-extensions", "--outdated"])
+        if outdated_extensions:
+            print(Fore.RED + "⚠️ Outdated VSCode extensions found.")
+            return False
+        else:
+            print(Fore.GREEN + "✅ All VSCode extensions are up-to-date.")
+            return True
+    return True
 
 def check_python_versions():
     print(Fore.YELLOW + "🔍 Checking Python and pip versions...")
