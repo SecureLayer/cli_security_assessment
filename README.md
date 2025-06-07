@@ -30,7 +30,6 @@ Designed specifically for **macOS users**, this script works seamlessly with you
 - **🐍 Python Vulnerabilities**: Scans installed Python packages for known security vulnerabilities.
 - **🐍 Python and Pip Versions**: Checks installed Python and Pip versions.
 - **🔐 GitHub Token Rotation**: Alerts if GitHub personal access tokens have not been rotated within a secure timeframe.
-- **🛳️ Container Image Scan**: Performs vulnerability scans on your local container images to detect known security issues.
 ---
 
 ### **Getting Started**
