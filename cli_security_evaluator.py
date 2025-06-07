@@ -285,28 +285,6 @@ def check_github_token_rotation():
         print(Fore.RED + f"⚠️ Error checking GitHub token: {e}")
         return None
 
-def check_container_scan():
-    print(Fore.YELLOW + "🔍 Running container image vulnerability scan...")
-    images_output = run_command(["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"])
-    if not images_output:
-        print(Fore.YELLOW + "⚠️ No local Docker images found.")
-        return True
-
-    images = images_output.splitlines()
-    vulnerable_images = []
-
-    for image in images[:3]:  # Limit scan to top 3 images for performance
-        scan_output = run_command(["docker", "scout", "cves", image])
-        if scan_output and "CRITICAL" in scan_output.upper():
-            print(Fore.RED + f"⚠️ Critical CVEs found in image: {image}")
-            vulnerable_images.append(image)
-
-    if vulnerable_images:
-        return False
-
-    print(Fore.GREEN + "✅ No critical CVEs found in scanned Docker images.")
-    return True
-
 def evaluate_security():
     results = {
         "PII Check": check_pii_in_history(),
@@ -322,7 +300,6 @@ def evaluate_security():
         "Git GPG Signing": check_git_gpg_signing(),
         "Python Vulnerabilities": check_python_vulnerabilities(),
         "GitHub Token Rotation": check_github_token_rotation(),
-        "Container Image Scan": check_container_scan(),
     }
 
     score = sum(1 for result in results.values() if result is True)
