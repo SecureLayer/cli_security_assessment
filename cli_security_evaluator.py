@@ -1,9 +1,6 @@
 # Security assessment script by SecureLayer © 2024. All rights reserved.
 
-# add python verification 
-# correct npm loop
-# correct VSCode errors 
-
+# new checks added : Docker, Terraform, K8s, AWS, Git GPG signing, Token Rotation  
 
 import os
 import re
@@ -183,6 +180,133 @@ def check_python_versions():
         print(Fore.RED + "⚠️ Python or Pip not found.")
         return False
 
+def check_docker_socket():
+    print(Fore.YELLOW + "🔍 Checking Docker socket permissions...")
+    output = run_command(["ls", "-l", "/var/run/docker.sock"])
+    if output and "docker" in output and "rw" in output:
+        print(Fore.GREEN + "✅ Docker socket appears restricted.")
+        return True
+    print(Fore.RED + "⚠️ Docker socket may be world-accessible.")
+    return False
+
+def check_tfstate_secrets():
+    print(Fore.YELLOW + "🔍 Checking Terraform state files for secrets...")
+    tfstate_paths = []
+    for root, dirs, files in os.walk(os.path.expanduser("~")):
+        for file in files:
+            if file.endswith(".tfstate"):
+                tfstate_paths.append(os.path.join(root, file))
+
+    secrets_found = False
+    for path in tfstate_paths:
+        try:
+            with open(path, "r", errors="ignore") as f:
+                content = f.read()
+                if re.search(r'(AKIA|AIza|-----BEGIN PRIVATE KEY-----)', content):
+                    print(Fore.RED + f"⚠️ Possible secret found in {path}")
+                    secrets_found = True
+        except Exception:
+            continue
+    return not secrets_found
+
+def check_kubeconfig():
+    print(Fore.YELLOW + "🔍 Checking Kubernetes config security...")
+    kubeconfig_path = os.path.expanduser("~/.kube/config")
+    if not os.path.exists(kubeconfig_path):
+        print(Fore.YELLOW + "⚠️ Kubeconfig not found.")
+        return None
+
+    with open(kubeconfig_path, 'r', errors="ignore") as file:
+        content = file.read()
+        if "insecure-skip-tls-verify: true" in content:
+            print(Fore.RED + "⚠️ Insecure Kubernetes cluster configuration.")
+            return False
+    print(Fore.GREEN + "✅ Kubeconfig appears secure.")
+    return True
+
+def check_aws_credentials():
+    print(Fore.YELLOW + "🔍 Checking for exposed AWS credentials...")
+    creds_file = os.path.expanduser("~/.aws/credentials")
+    if os.path.exists(creds_file):
+        with open(creds_file, 'r', errors="ignore") as f:
+            content = f.read()
+            if "aws_access_key_id" in content:
+                print(Fore.RED + "⚠️ AWS credentials file detected.")
+                return False
+    print(Fore.GREEN + "✅ No exposed AWS credentials file.")
+    return True
+
+def check_git_gpg_signing():
+    print(Fore.YELLOW + "🔍 Checking Git GPG signing...")
+    signing = run_command(["git", "config", "--global", "commit.gpgsign"])
+    if signing != "true":
+        print(Fore.RED + "⚠️ GPG commit signing not enforced.")
+        return False
+    print(Fore.GREEN + "✅ GPG commit signing is enabled.")
+    return True
+
+def check_python_vulnerabilities():
+    print(Fore.YELLOW + "🔍 Checking for Python package vulnerabilities...")
+    try:
+        output = run_command(["pip-audit", "-f", "json"])
+        if output:
+            data = json.loads(output)
+            if data:
+                print(Fore.RED + "⚠️ Vulnerable Python packages found.")
+                return False
+    except Exception:
+        print(Fore.YELLOW + "⚠️ pip-audit not available or failed.")
+        return None
+    print(Fore.GREEN + "✅ No known Python package vulnerabilities.")
+    return True
+
+def check_github_token_rotation():
+    print(Fore.YELLOW + "🔍 Checking GitHub token rotation...")
+    token_path = os.path.expanduser("~/.github_tokens")
+    if not os.path.exists(token_path):
+        print(Fore.GREEN + "✅ No GitHub token file detected.")
+        return True
+
+    try:
+        with open(token_path, 'r') as f:
+            token = f.read().strip()
+            headers = {"Authorization": f"Bearer {token}"}
+            r = requests.get("https://api.github.com/user", headers=headers, timeout=5)
+            if r.status_code == 401:
+                print(Fore.RED + "⚠️ GitHub token is expired or invalid.")
+                return False
+            elif r.status_code == 200:
+                print(Fore.GREEN + "✅ GitHub token is valid.")
+                return True
+            else:
+                print(Fore.YELLOW + f"⚠️ Unexpected GitHub API status: {r.status_code}")
+                return None
+    except Exception as e:
+        print(Fore.RED + f"⚠️ Error checking GitHub token: {e}")
+        return None
+
+def check_container_scan():
+    print(Fore.YELLOW + "🔍 Running container image vulnerability scan...")
+    images_output = run_command(["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"])
+    if not images_output:
+        print(Fore.YELLOW + "⚠️ No local Docker images found.")
+        return True
+
+    images = images_output.splitlines()
+    vulnerable_images = []
+
+    for image in images[:3]:  # Limit scan to top 3 images for performance
+        scan_output = run_command(["docker", "scout", "cves", image])
+        if scan_output and "CRITICAL" in scan_output.upper():
+            print(Fore.RED + f"⚠️ Critical CVEs found in image: {image}")
+            vulnerable_images.append(image)
+
+    if vulnerable_images:
+        return False
+
+    print(Fore.GREEN + "✅ No critical CVEs found in scanned Docker images.")
+    return True
+
 def evaluate_security():
     results = {
         "PII Check": check_pii_in_history(),
@@ -191,6 +315,14 @@ def evaluate_security():
         "Homebrew Packages": check_homebrew_updates(),
         "VSCode": check_vscode_updates(),
         "Python and pip versions": check_python_versions(),
+        "Docker Socket": check_docker_socket(),
+        "Terraform Secrets": check_tfstate_secrets(),
+        "Kubeconfig": check_kubeconfig(),
+        "AWS Credentials": check_aws_credentials(),
+        "Git GPG Signing": check_git_gpg_signing(),
+        "Python Vulnerabilities": check_python_vulnerabilities(),
+        "GitHub Token Rotation": check_github_token_rotation(),
+        "Container Image Scan": check_container_scan(),
     }
 
     score = sum(1 for result in results.values() if result is True)
