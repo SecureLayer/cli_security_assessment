@@ -22,7 +22,15 @@ Designed specifically for **macOS users**, this script works seamlessly with you
 - **🔑 SSH Key Inspection**: Identifies any insecure SSH keys or keys stored in unexpected locations.
 - **🍺 Homebrew Package Check**: Verifies if your Homebrew-installed software is up-to-date.
 - **🖥️ VSCode Extension Checker**: Confirms your VSCode and extensions are up-to-date.
-
+- **🐳 Docker Socket**: Verifies the security of your Docker socket to detect potential privilege escalations.
+- **🛠️ Terraform Secrets**: Scans Terraform state files (*.tfstate) for embedded secrets or credentials.
+- **☸️ Kubeconfig**: Checks Kubernetes configuration files for exposed or insecure credentials.
+- **☁️ AWS Credentials**: Detects AWS credentials in environment variables or configuration files to avoid accidental exposure.
+- **🔏 Git GPG Signing**: Ensures Git commit signing with GPG keys is enforced for commit authenticity.
+- **🐍 Python Vulnerabilities**: Scans installed Python packages for known security vulnerabilities.
+- **🐍 Python and Pip Versions**: Checks installed Python and Pip versions.
+- **🔐 GitHub Token Rotation**: Alerts if GitHub personal access tokens have not been rotated within a secure timeframe.
+- **🛳️ Container Image Scan**: Performs vulnerability scans on your local container images to detect known security issues.
 ---
 
 ### **Getting Started**
