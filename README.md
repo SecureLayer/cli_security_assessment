@@ -1,4 +1,5 @@
-#🛡️ Security CLI Assessment Script 
+# Security CLI Assessment Script 🛡️🛡️🛡️
+
 ## A Python security‑assessment script that scans mutliples items (shell history, Homebrew, SSH keys, VSCode extensions...) to detect vulnerabilities, outdated software and leaks. 
 
 ![Python](https://img.shields.io/badge/Python-3.13+-blue?logo=python)
