@@ -1,18 +1,15 @@
-----
-|   |
-|:--|
-| We do not consent to GitHub's use of this project's code in Copilot. 
-Any use of this project's code by GitHub Copilot,  past or present, is done without our permission. |
-|   |
-----
+#🛡️ Security CLI Assessment Script 
+## A Python security‑assessment script that scans mutliples items (shell history, Homebrew, SSH keys, VSCode extensions...) to detect vulnerabilities, outdated software and leaks. 
 
-## 🛡️ Security Assessment Script  
-*Delivered with ❤️ by SecureLayer © 2024*
+![Python](https://img.shields.io/badge/Python-3.13+-blue?logo=python)
+![Security](https://img.shields.io/badge/Domain-Cybersecurity-red)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 
 ### **Overview**
-This Python-based security assessment tool helps maintain your system's integrity by performing essential security checks. It evaluates critical aspects of your setup and ensures your machine is free from potential vulnerabilities, outdated software, and sensitive data leaks.
+This Python-based security assessment tool helps maintain your system's integrity by performing basic/essential security checks. It evaluates critical aspects of your setup and ensures your machine is free from potential vulnerabilities, outdated software and sensitive data leaks.
 
-Designed specifically for **macOS users**, this script works seamlessly with your shell history, Homebrew packages, SSH keys, VSCode extensions, and NPM libraries to keep you secure.
+Designed specifically for **macOS users**, this script works seamlessly with your shell history, Homebrew packages, SSH keys, VSCode extensions and NPM libraries to keep your work and data secure.
 
 ---
 
@@ -34,8 +31,8 @@ Designed specifically for **macOS users**, this script works seamlessly with you
 
 ### **Getting Started**
 
-#### **Prerequisites**
-- Python 3.x  
+#### **Pre-Requisites**
+- Python 3.1.x  
 - macOS (Required)  
 - Install necessary dependencies:  
   ```bash
@@ -43,13 +40,22 @@ Designed specifically for **macOS users**, this script works seamlessly with you
   ```
 
 #### **Usage**
-1. Clone the repository or download the script.
+1. Clone this repository.
+ ```bash
+ git clone https://github.com/SecureLayer/cli_security_assessment.git
+ ```
 2. Open a terminal and navigate to the script's directory.
+ ```bash
+  cd cli_security_assessment
+ ```
 3. Run the script with the following command:  
    ```bash
    python cli_security_evaluator.py
    ```
-
+3 bis. Use poetry to run the script with the following command:  
+   ```bash
+   poetry run python cli_security_evaluator.py   
+   ```
 ---
 
 ### **Script Walkthrough**
@@ -82,48 +88,33 @@ Designed specifically for **macOS users**, this script works seamlessly with you
 🔍 Checking SSH keys...
 ✅ Secure SSH key found: ~/.ssh/id_ed25519.pub
 
-🔍 Checking Homebrew packages...
-✅ All brew packages are up-to-date.
-
-🔍 Checking VSCode and extensions...
-✅ VSCode and extensions are up-to-date.
 
 Security Assessment Report:
 
 PII Check: Secured
 NPM Libraries: Secured
 SSH Keys: Secured
-Homebrew Packages: Secured
-VSCode: Secured
+
 
 Security Grade: 100%
 Recommendation: Excellent security posture.
 
-Results delivered with ❤️ by SecureLayer.
+Results delivered with ❤️ by SecureLayer © 2024*.
 ```
    
 ---
 
 ### **Disclaimer**
-This tool is provided "as-is" and is intended to assist with **security assessments**. It is not a substitute for professional security services or audits.
+This tool is provided "as-is" and is intended to **assist** users with security assessments. It is not a substitute for professional security services or audits.
 
 ---
 
 ### **Contributions & Support**
-We welcome contributions! Feel free to submit pull requests or report issues. For support, contact us at:  
-📧 **github@securelayer.co**
+We welcome contributions! Feel free to submit pull requests or report issues. 
+Do not hesitate to contact us at: 📧 **github@securelayer.co**
 
----
-
-### **License**
-© 2024 SecureLayer. All rights reserved.  
-Unauthorized reuse, modification, or redistribution of this script may result in penalties.
-
----
 
 ### **Final Note**
 Keeping your system secure is a continuous journey. This script provides a solid foundation, but always remain vigilant and apply the latest security practices!
-
----
 
 💙 **Security is a priority, not an option!** Stay safe with SecureLayer.
