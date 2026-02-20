@@ -100,7 +100,7 @@ SSH Keys: Secured
 Security Grade: 100%
 Recommendation: Excellent security posture.
 
-Results delivered with ❤️ by SecureLayer © 2024*.
+Results delivered with ❤️ by SecureLayer © 2024.
 ```
    
 ---
@@ -112,7 +112,8 @@ This tool is provided "as-is" and is intended to **assist** users with security 
 
 ### **Contributions & Support**
 We welcome contributions! Feel free to submit pull requests or report issues. 
-Do not hesitate to contact us at: 📧 **github@securelayer.co**
+Do not hesitate to contact us at: 
+📧 **github@securelayer.co**
 
 
 ### **Final Note**
